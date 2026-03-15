@@ -19,6 +19,22 @@ services:
       broker:
         condition: service_healthy
 
+  redis:
+    image: redis
+    container_name: redis
+
+  snapshot_updater:
+    build: .
+    container_name: snapshot_updater
+    volumes:
+      - .:/app
+    depends_on:
+      broker:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: python snapshot_updater.py
+
 
   broker:
     image: apache/kafka:latest

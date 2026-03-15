@@ -24,7 +24,7 @@ def create_cinema(val_cinema: CinemaCreate):
         raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     return {
-        "id": cinema.get_id(),
+        "cinema_id": cinema.get_id(),
         "date": cinema.get_date(),
         "time": cinema.get_time(),
         "cinema": cinema.get_cinema(),
@@ -52,7 +52,7 @@ def get_all_cinemas_scroll(start: int, limit: int):
 def get_all_cinemas():
     cinemas = CinemasEventSourcing.load()
 
-    return [{"id": cinema.get_id(),
+    return [{"cinema_id": cinema.get_id(),
              "date": cinema.get_date(),
              "time": cinema.get_time(),
              "cinema": cinema.get_cinema(),
@@ -95,7 +95,7 @@ def get_cinema_by_id(cinema_id: str):
 
     if cinema.get_version() == -1 or cinema.__deleted__:
         raise HTTPException(status_code=404, detail="Session not found")
-    return {"id": cinema.get_id(),
+    return {"cinema_id": cinema.get_id(),
              "date": cinema.get_date(),
              "time": cinema.get_time(),
              "cinema": cinema.get_cinema(),

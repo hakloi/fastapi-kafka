@@ -32,7 +32,7 @@ class CinemaUpdate(BaseModel):
 
 class CinemaOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id: str
+    cinema_id: str
     date: date
     time: time
     cinema: str
