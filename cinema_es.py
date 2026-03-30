@@ -46,7 +46,7 @@ class CinemaEventConsumer:
         while not c.assignment():
             c.poll(0.1)
         while True:
-            msg = c.poll(2.0)
+            msg = c.poll(0.1)
             if msg is None:
                 break
             if msg.error():
@@ -235,6 +235,7 @@ class CinemasEventSourcing:
         ) for id in ids]
 
         for cinema in cinemas:
+            # друнгой метод , могу передать каждому объекту свои события с 220тстрочки
             cinema.load()
 
         return [c for c in cinemas if not c.is_deleted()]

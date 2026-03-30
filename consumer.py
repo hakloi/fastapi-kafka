@@ -29,10 +29,10 @@ while True:
         object = json.loads(msg.value().decode('utf-8'))
         if object['op'] == 'c':
             db_cinema = Cinema(
-                id=str(uuid.uuid4()),
+                id=object['cinema']['cinema_id'],
                 date=object['cinema']['date'],
                 time=object['cinema']['time'],
-                cinema=object['cinema']['cinema_id'],
+                cinema=object['cinema']['cinema'],
                 movie=object['cinema']['movie'],
                 hall_number=object['cinema']['hall_number'],
                 type=object['cinema']['type'],
@@ -50,7 +50,7 @@ while True:
 
             cinema.date = object['cinema']['date']
             cinema.time = object['cinema']['time']
-            cinema.cinema = object['cinema']['cinema_id']
+            cinema.cinema = object['cinema']['cinema']
             cinema.movie = object['cinema']['movie']
             cinema.hall_number = object['cinema']['hall_number']
             cinema.type = object['cinema']['type']
