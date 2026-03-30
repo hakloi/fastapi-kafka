@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
-from database import SessionLocal
-from database_model import Cinema
-from validation_models import CinemaOut
+from infrastructure.database import SessionLocal
+from infrastructure.database_model import Cinema
+from api.validation_models import CinemaOut
 
 app = FastAPI()
 
@@ -27,8 +27,7 @@ def get_all_cinemas():
 @app.get("/api/cinemas/{start}/{limit}", response_model=list[CinemaOut])
 def get_all_cinemas_scroll(start: int, limit: int):
     with SessionLocal() as session:
-        cinemas = session.query(Cinema).offset(start).limit(limit).all()
-        return [_to_out(c) for c in cinemas]
+        return [_to_out(c) for c in session.query(Cinema).offset(start).limit(limit).all()]
 
 
 @app.get("/api/cinemas/{cinema_id}", response_model=CinemaOut)

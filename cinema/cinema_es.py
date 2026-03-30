@@ -1,15 +1,11 @@
 import uuid
-
 from confluent_kafka import Consumer, Producer
 import json
-
-from redis_cinemas import RedisCinemas
+from cinema.redis_cinemas import RedisCinemas
 
 
 class CinemaEventProducer:
-    __p__ = Producer({
-        "bootstrap.servers": "broker:9092"
-    })
+    __p__ = Producer({"bootstrap.servers": "broker:9092"})
 
     @classmethod
     def produce(cls, data: dict):
@@ -17,14 +13,13 @@ class CinemaEventProducer:
             key = data["cinema"]["cinema_id"]
         else:
             key = data["cinema_id"]
-
         cls.__p__.produce(
             topic="operations",
             value=json.dumps(data).encode("utf-8"),
             key=str(key).encode("utf-8")
         )
-
         cls.__p__.flush()
+
 
 class CinemaEventConsumer:
 
@@ -73,9 +68,11 @@ class CinemaEventConsumer:
                 events.append(event)
         return events
 
+
 def send_event_to_kafka(event):
     event['id_event'] = str(uuid.uuid4())
     CinemaEventProducer.produce(event)
+
 
 class CinemaEventSourcing:
     def __init__(self, cinema_id, date=None, time=None, cinema=None, movie=None, hall_number=None, type=None, owner_id=None):
@@ -93,7 +90,7 @@ class CinemaEventSourcing:
 
     def load(self):
         dump = RedisCinemas.getCinemaDump(self.__cinema_id__)
-        if not dump is None:
+        if dump is not None:
             self.__date__ = dump['date']
             self.__time__ = dump['time']
             self.__cinema__ = dump['cinema']
@@ -102,10 +99,7 @@ class CinemaEventSourcing:
             self.__type__ = dump['type']
             self.__version__ = dump['version']
             self.__deleted__ = dump['deleted']
-            ids_event = set()
-            for event in dump['ids_event']:
-                ids_event.add(event)
-            self.__ids_event__ = ids_event
+            self.__ids_event__ = set(dump['ids_event'])
 
         events = CinemaEventConsumer.load_events(self.__cinema_id__)
         for event in events:
@@ -157,7 +151,7 @@ class CinemaEventSourcing:
             "type": self.__type__,
             "owner_id": self.__owner__
         }
-        send_event_to_kafka({"op": "u","cinema": cinema_data})
+        send_event_to_kafka({"op": "u", "cinema": cinema_data})
         self.__version__ += 1
 
     def delete(self, old_version):
@@ -166,10 +160,7 @@ class CinemaEventSourcing:
         if self.__version__ != old_version:
             raise RuntimeError(f"Not correct version: {old_version}")
         self.__deleted__ = True
-        send_event_to_kafka({
-            "op": "d",
-            "cinema_id": self.__cinema_id__
-        })
+        send_event_to_kafka({"op": "d", "cinema_id": self.__cinema_id__})
 
     def create(self):
         cinema = {
@@ -184,58 +175,24 @@ class CinemaEventSourcing:
         self.__version__ = 0
         send_event_to_kafka({"op": "c", "cinema": cinema})
 
-    def is_deleted(self):
-        return self.__deleted__
-    
-    def get_id(self):
-        return self.__cinema_id__
+    def is_deleted(self): return self.__deleted__
+    def get_id(self): return self.__cinema_id__
+    def get_date(self): return self.__date__
+    def get_time(self): return self.__time__
+    def get_cinema(self): return self.__cinema__
+    def get_movie(self): return self.__movie__
+    def get_hall_number(self): return self.__hall_number__
+    def get_type(self): return self.__type__
+    def get_version(self): return self.__version__
+    def get_ids_event(self): return list(self.__ids_event__)
 
-    def get_date(self):
-        return self.__date__
-
-    def get_time(self):
-        return self.__time__
-
-    def get_cinema(self):
-        return self.__cinema__
-
-    def get_movie(self):
-        return self.__movie__
-
-    def get_hall_number(self):
-        return self.__hall_number__
-
-    def get_type(self):
-        return self.__type__
-
-    def get_version(self):
-        return self.__version__
-
-    def get_ids_event(self):
-        return list(self.__ids_event__)
 
 class CinemasEventSourcing:
     @staticmethod
     def load():
         events = CinemaEventConsumer.load_all_events()
-
-        ids = set()
-        for event in events:
-            if event['op'] == 'c':
-                ids.add(event['cinema']['cinema_id'])
-
-        cinemas = [CinemaEventSourcing(
-            cinema_id=id,
-            date=None,
-            time=None,
-            cinema=None,
-            movie=None,
-            hall_number=None,
-            type=None
-        ) for id in ids]
-
+        ids = {event['cinema']['cinema_id'] for event in events if event['op'] == 'c'}
+        cinemas = [CinemaEventSourcing(cinema_id=id) for id in ids]
         for cinema in cinemas:
-            # друнгой метод , могу передать каждому объекту свои события с 220тстрочки
             cinema.load()
-
         return [c for c in cinemas if not c.is_deleted()]

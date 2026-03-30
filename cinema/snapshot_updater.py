@@ -1,7 +1,7 @@
 import redis
 import json
+from cinema.cinema_es import CinemasEventSourcing, CinemaEventSourcing
 
-from cinema_es import CinemasEventSourcing, CinemaEventSourcing
 
 def get_state(cinema: CinemaEventSourcing):
     return {
@@ -16,6 +16,7 @@ def get_state(cinema: CinemaEventSourcing):
         'deleted': cinema.is_deleted(),
         'ids_event': cinema.get_ids_event(),
     }
+
 
 redisObject = redis.from_url("redis://redis:6379")
 cinemas = CinemasEventSourcing.load()

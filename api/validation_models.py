@@ -39,3 +39,12 @@ class CinemaOut(BaseModel):
     movie: str
     hall_number: int
     type: SessionType
+
+class BookingCreate(BaseModel):
+    cinema_id: str
+    hall_number: int
+    seat_number: int
+
+class BookingOut(BaseModel):
+    booking_id: str
+    status: str

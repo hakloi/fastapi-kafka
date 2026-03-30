@@ -1,6 +1,7 @@
 import redis
 import json
 
+
 class RedisCinemas:
     redisObject = redis.from_url("redis://redis:6379")
 

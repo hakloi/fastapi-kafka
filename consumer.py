@@ -3,8 +3,8 @@ import uuid
 
 from confluent_kafka import Consumer
 
-from database import SessionLocal
-from database_model import Cinema
+from infrastructure.database import SessionLocal
+from infrastructure.database_model import Cinema
 
 c = Consumer({
     'bootstrap.servers': 'broker:9092',
