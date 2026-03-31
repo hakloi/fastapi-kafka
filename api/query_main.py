@@ -6,7 +6,7 @@ from api.validation_models import CinemaOut
 app = FastAPI()
 
 
-def _to_out(c: Cinema) -> dict:
+def _to_out(c: Cinema):
     return {
         "cinema_id": c.id,
         "date": c.date,

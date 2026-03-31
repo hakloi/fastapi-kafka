@@ -63,7 +63,7 @@ def delete_cinema(cinema_id: str):
         raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
     return {}
 
-
+# новый эндпоинт, saga процесс реализован
 @app.post("/api/bookings/", response_model=BookingOut)
 def create_booking(val: BookingCreate):
     booking_id = request_booking(val.cinema_id, val.hall_number, val.seat_number)

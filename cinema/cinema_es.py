@@ -88,7 +88,7 @@ class CinemaEventSourcing:
         self.__deleted__ = False
         self.__ids_event__ = set()
 
-    def load(self):
+    def load(self, preloaded_events=None):
         dump = RedisCinemas.getCinemaDump(self.__cinema_id__)
         if dump is not None:
             self.__date__ = dump['date']
@@ -101,7 +101,10 @@ class CinemaEventSourcing:
             self.__deleted__ = dump['deleted']
             self.__ids_event__ = set(dump['ids_event'])
 
-        events = CinemaEventConsumer.load_events(self.__cinema_id__)
+        if preloaded_events is not None:
+            events = preloaded_events
+        else:
+            events = CinemaEventConsumer.load_events(self.__cinema_id__)
         for event in events:
             event_id = event.get('id_event')
             if event_id is None or event_id not in self.__ids_event__:
@@ -190,9 +193,17 @@ class CinemaEventSourcing:
 class CinemasEventSourcing:
     @staticmethod
     def load():
-        events = CinemaEventConsumer.load_all_events()
-        ids = {event['cinema']['cinema_id'] for event in events if event['op'] == 'c'}
-        cinemas = [CinemaEventSourcing(cinema_id=id) for id in ids]
+        all_events = CinemaEventConsumer.load_all_events()
+        events_by_id: dict[str, list] = {}
+        for event in all_events:
+            if event['op'] in ('c', 'u'):
+                cid = event['cinema']['cinema_id']
+            elif event['op'] == 'd':
+                cid = event['cinema_id']
+            else:
+                continue
+            events_by_id.setdefault(cid, []).append(event)
+        cinemas = [CinemaEventSourcing(cinema_id=cid) for cid, evs in events_by_id.items() if any(e['op'] == 'c' for e in evs)]
         for cinema in cinemas:
-            cinema.load()
+            cinema.load(preloaded_events=events_by_id[cinema.get_id()])
         return [c for c in cinemas if not c.is_deleted()]

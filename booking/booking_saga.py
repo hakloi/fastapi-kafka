@@ -40,7 +40,9 @@ def request_booking(cinema_id: str, hall_number: int, seat_number: int) -> str:
 
 def confirm_booking(session, booking_id: str):
     booking = session.query(Booking).filter(Booking.id == booking_id).first()
-    if booking:
+    if not booking:
+        raise ValueError(f"Booking {booking_id} not found") 
+    else:
         booking.status = BookingStatus.CONFIRMED
     _outbox(session, "bookings", booking_id, {
         "event_id": str(uuid.uuid4()),
@@ -51,7 +53,9 @@ def confirm_booking(session, booking_id: str):
 
 def cancel_booking(session, booking_id: str):
     booking = session.query(Booking).filter(Booking.id == booking_id).first()
-    if booking:
+    if not booking:
+        raise ValueError(f"Booking {booking_id} not found") 
+    else:
         booking.status = BookingStatus.CANCELLED
     _outbox(session, "bookings", booking_id, {
         "event_id": str(uuid.uuid4()),

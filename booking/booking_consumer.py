@@ -25,6 +25,7 @@ while True:
         event_id = event["event_id"]
         booking_id = event["booking_id"]
 
+        # реализована идемпотентность 
         with SessionLocal() as session:
             if session.query(ProcessedEvent).filter(ProcessedEvent.event_id == event_id).first():
                 c.commit(msg)
